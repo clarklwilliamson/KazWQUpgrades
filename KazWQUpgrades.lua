@@ -116,8 +116,8 @@ local function EnsureIndicator(line)
     return icon
 end
 
--- Hook WorldQuestList_Update to tag lines with upgrade indicators
-hooksecurefunc("WorldQuestList_Update", function()
+-- Hook WorldQuestList.UpdateList (local WorldQuestList_Update exposed at line 8018)
+hooksecurefunc(WorldQuestList, "UpdateList", function()
     if not enabled then return end
 
     local lines = WorldQuestList and WorldQuestList.l
@@ -151,8 +151,8 @@ local function HandleSlashCommand(msg)
     if msg == "" then
         enabled = not enabled
         print("|cff00ccffKazWQUpgrades|r: " .. (enabled and "Enabled" or "Disabled"))
-        if WorldQuestList and WorldQuestList:IsVisible() and WorldQuestList_Update then
-            WorldQuestList_Update()
+        if WorldQuestList and WorldQuestList:IsVisible() and WorldQuestList.UpdateList then
+            WorldQuestList:UpdateList()
         end
     end
 end
