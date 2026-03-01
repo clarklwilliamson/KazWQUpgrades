@@ -29,32 +29,29 @@ local INVTYPE_SLOTS = {
     INVTYPE_RANGEDRIGHT = {16},
 }
 
--- Cache: questID -> true/false/nil (nil = not checked yet)
+-- Cache: questID -> true/false (nil = not checked yet or data not ready)
 local upgradeCache = {}
 local enabled = true
 
 -- Check if a quest reward is a gear upgrade
 local function IsUpgrade(questID)
-    if upgradeCache[questID] ~= nil then
-        return upgradeCache[questID]
+    local cached = upgradeCache[questID]
+    if cached == true or cached == false then
+        return cached
     end
 
     local numRewards = GetNumQuestLogRewards(questID)
     if numRewards == 0 then
-        upgradeCache[questID] = false
         return false
     end
 
-    -- Get the first reward item
     local _, _, _, _, _, itemID = GetQuestLogRewardInfo(1, questID)
     if not itemID then
-        upgradeCache[questID] = false
         return false
     end
 
-    -- Check if it's equippable
     local _, _, _, equipSlot = C_Item.GetItemInfoInstant(itemID)
-    if not equipSlot then
+    if not equipSlot or equipSlot == "" then
         upgradeCache[questID] = false
         return false
     end
@@ -65,16 +62,13 @@ local function IsUpgrade(questID)
         return false
     end
 
-    -- Get reward item level from quest log link
     local itemLink = GetQuestLogItemLink("reward", 1, questID)
     if not itemLink then
-        upgradeCache[questID] = false
         return false
     end
 
     local rewardIlvl = C_Item.GetDetailedItemLevelInfo(itemLink)
     if not rewardIlvl then
-        upgradeCache[questID] = false
         return false
     end
 
@@ -89,7 +83,6 @@ local function IsUpgrade(questID)
                 lowestEquipped = equippedIlvl
             end
         else
-            -- Empty slot = definite upgrade
             lowestEquipped = 0
             break
         end
