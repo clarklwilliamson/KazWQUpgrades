@@ -109,8 +109,8 @@ local function EnsureIndicator(line)
     return icon
 end
 
--- Hook WorldQuestList.UpdateList (local WorldQuestList_Update exposed at line 8018)
-hooksecurefunc(WorldQuestList, "UpdateList", function()
+-- Scan visible WQL lines and show/hide upgrade arrows
+local function ScanLines()
     if not enabled then return end
 
     local lines = WorldQuestList and WorldQuestList.l
@@ -129,7 +129,25 @@ hooksecurefunc(WorldQuestList, "UpdateList", function()
             line.kazUpgradeIcon:Hide()
         end
     end
-end)
+end
+
+-- Replace WorldQuestList.UpdateList with a wrapper so ALL calls go through our hook.
+-- WQL internally calls the local WorldQuestList_Update() directly, which bypasses
+-- hooksecurefunc on the table slot. Wrapping the function itself catches everything.
+local originalUpdateList = WorldQuestList.UpdateList
+WorldQuestList.UpdateList = function(...)
+    originalUpdateList(...)
+    ScanLines()
+end
+
+-- Also hook the .8s ticker and other paths that call the local directly.
+-- WQL's OnShow and event handlers call WorldQuestList_Update() (the local),
+-- which does NOT go through WorldQuestList.UpdateList. Hook OnShow to catch those.
+if WorldQuestList.C then
+    WorldQuestList:HookScript("OnShow", function()
+        C_Timer.After(0.1, ScanLines)
+    end)
+end
 
 -- Wipe cache when gear changes
 local frame = CreateFrame("Frame")
@@ -138,15 +156,21 @@ frame:SetScript("OnEvent", function()
     wipe(upgradeCache)
 end)
 
+-- Periodic rescan — WQL's internal local calls bypass our wrapper.
+-- Light 1s ticker only runs while WQL is visible.
+C_Timer.NewTicker(1, function()
+    if WorldQuestList and WorldQuestList:IsVisible() then
+        ScanLines()
+    end
+end)
+
 -- Slash commands
 local function HandleSlashCommand(msg)
     msg = (msg or ""):trim():lower()
     if msg == "" then
         enabled = not enabled
         print("|cff00ccffKazWQUpgrades|r: " .. (enabled and "Enabled" or "Disabled"))
-        if WorldQuestList and WorldQuestList:IsVisible() and WorldQuestList.UpdateList then
-            WorldQuestList:UpdateList()
-        end
+        ScanLines()
     end
 end
 
