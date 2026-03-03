@@ -1,0 +1,10 @@
+KazWQUpgrades - Gear upgrade indicators for WorldQuestsList
+
+Shows green arrow next to WQL gear rewards that are ilvl upgrades over
+currently equipped gear. Compares reward ilvl to equipped (lowest of
+dual slots for rings/trinkets/weapons).
+
+Commands:
+  /kwq                Toggle on/off
+
+  /kaz wq             Same as /kwq
