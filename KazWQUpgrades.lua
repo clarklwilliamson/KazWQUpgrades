@@ -1,7 +1,8 @@
 -- KazWQUpgrades: Gear upgrade indicators for WorldQuestsList
 -- Hooks WQL's update cycle and shows a green arrow next to gear rewards that are upgrades
 
-local ADDON_NAME = "KazWQUpgrades"
+local KazUtil = LibStub("KazUtil-1.0")
+local Print = KazUtil.CreatePrinter("KazWQUpgrades")
 
 -- Slot mapping: INVTYPE string -> equipment slot ID(s)
 local INVTYPE_SLOTS = {
@@ -150,11 +151,9 @@ if WorldQuestList.C then
 end
 
 -- Wipe cache when gear changes
-local frame = CreateFrame("Frame")
-frame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
-frame:SetScript("OnEvent", function()
-    wipe(upgradeCache)
-end)
+local _, handlers, register = KazUtil.CreateEventHandler()
+function handlers.PLAYER_EQUIPMENT_CHANGED() wipe(upgradeCache) end
+register("PLAYER_EQUIPMENT_CHANGED")
 
 -- Periodic rescan — WQL's internal local calls bypass our wrapper.
 -- Light 1s ticker only runs while WQL is visible.
@@ -166,10 +165,10 @@ end)
 
 -- Slash commands
 local function HandleSlashCommand(msg)
-    msg = (msg or ""):trim():lower()
-    if msg == "" then
+    local cmd = KazUtil.ParseCommand(msg)
+    if cmd == "" then
         enabled = not enabled
-        print("|cff00ccffKazWQUpgrades|r: " .. (enabled and "Enabled" or "Disabled"))
+        Print(enabled and "Enabled" or "Disabled")
         ScanLines()
     end
 end

@@ -1,9 +1,10 @@
 ## Interface: 120001
-## Title: KazWQUpgrades
+## Title: |cff00c0ffKaz|r WQ Upgrades
 ## Notes: Gear upgrade indicators for WorldQuestsList
 ## Author: Kaz (Claude Code) & Logan
 ## Version: 1.0.0
-## Dependencies: WorldQuestsList
+## Dependencies: KazUtil, WorldQuestsList
+## Group: Kaz
 ## Category-enUS: Kaz
 
 KazWQUpgrades.lua
